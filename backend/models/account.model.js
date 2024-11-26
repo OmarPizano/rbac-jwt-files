@@ -3,6 +3,12 @@ import sequelize from "../config/db.js";
 import bcrypt from "bcrypt";
 
 const Account = sequelize.define("Account", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -12,10 +18,14 @@ const Account = sequelize.define("Account", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  role: {
-    type: DataTypes.ENUM("admin", "user"),
-    defaultValue: "user",
+  role_id: {
+    type: DataTypes.INTEGER,
+    defaultValue: 2,
     allowNull: false,
+    references: {
+      model: "role", // TODO: use Model object
+      key: "id"
+    }
   }
 }, {
   timestamps: false,
