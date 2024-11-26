@@ -1,6 +1,6 @@
 CREATE TABLE role (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE account (
@@ -15,8 +15,8 @@ CREATE TABLE account (
 
 CREATE TABLE uploaded_file (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    url VARCHAR(255) NOT NULL,
-    role_id_required INT,
+    url VARCHAR(255) NOT NULL UNIQUE,
+    role_id_required INT NOT NULL,
     CONSTRAINT fk_file_role FOREIGN KEY (role_id_required) REFERENCES role(id)
         ON DELETE RESTRICT
 		ON UPDATE RESTRICT
