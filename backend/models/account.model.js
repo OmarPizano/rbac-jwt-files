@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import bcrypt from "bcrypt";
+import Role from "./role.model.js";
 
 const Account = sequelize.define("Account", {
   id: {
@@ -23,8 +24,8 @@ const Account = sequelize.define("Account", {
     defaultValue: 2,
     allowNull: false,
     references: {
-      model: "role", // TODO: use Model object
-      key: "id"
+      model: Role,
+      key: "id",
     }
   }
 }, {
