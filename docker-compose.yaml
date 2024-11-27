@@ -8,6 +8,9 @@ services:
       MYSQL_DATABASE: files
     volumes:
       - db_data:/var/lib/mysql
+      # runs ./sql/init.sql only the first time (if db_data is not present)
+      # to execute again, delete db_data volume manually
+      - ./sql:/docker-entrypoint-initdb.d/
     ports:
       - "3306:3306"
     healthcheck:
