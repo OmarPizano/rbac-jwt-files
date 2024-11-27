@@ -1,6 +1,6 @@
 import express from "express";
 import sequelize from "./config/db.js";
-import fileRouter from "./routes/file.routes.js";
+import roleRouter from "./routes/role.routes.js";
 
 const app = express();
 
@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // routes
-app.use(fileRouter);
+app.use(roleRouter);
 
 // database sync
 sequelize.sync().then(() => {
