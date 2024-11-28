@@ -29,6 +29,7 @@ services:
     environment:
       PORT: 3000
       JWT_SECRET: Secret1234
+      JWT_EXPIRATION_TIME_SECONDS: 300
       DB_HOST: mysql
       DB_USER: root
       DB_PASSWORD: password1234
