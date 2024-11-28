@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
 import jwtConfig from "../config/jwt.js";
 
-export const auth = (requiredRole) => (req, res, next) => {
+const roles = { "admin": 1, "user": 2 };
+
+/**
+ * Usage: auth("admin"), auth("admin", "user")
+ */
+export const auth = (...allowedRoles) => (req, res, next) => {
+  console.log("ROLES", allowedRoles)
   // 1. authentication
   // extract auth header
   const authHeader = req.headers["authorization"];
@@ -18,8 +24,8 @@ export const auth = (requiredRole) => (req, res, next) => {
     if (!payload.id || !payload.username || !payload.role_id) return res.sendStatus(400);
   
     // 2. authorization
-    const roles = { "admin": 1, "user": 2 };
-    if (payload.role_id !== roles[requiredRole] ) return res.sendStatus(403);
+    const roleFound = allowedRoles.filter((role) => roles[role] == payload.role_id);
+    if (roleFound.length == 0) return res.sendStatus(403);
 
     // insert accountData for further frontend processing
     req.accountData = payload;
