@@ -6,7 +6,7 @@ import Account from "../models/account.model.js";
 
 const authRouter = express.Router();
 
-authRouter.post("/auth/token", async (req, res) => {
+authRouter.post("/auth", async (req, res) => {
   const { username, password } = req.body;
 
   // search account
