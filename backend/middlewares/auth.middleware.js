@@ -21,7 +21,10 @@ export const authenticateToken = (req, res, next) => {
   });
 };
 
+// authorization
+// this middleware always executes after authentication middleware
 export const authorizeRole = (role) => (req, res, next) => {
-  if (req.accountData.role =! role) return res.sendStatus(403);
+  const roles = { "admin": 1, "user": 2 };
+  if (req.accountData.role_id !== roles[role] ) return res.sendStatus(403);
   next();
 }
