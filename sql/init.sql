@@ -22,6 +22,19 @@ CREATE TABLE uploaded_file (
 		ON UPDATE RESTRICT
 );
 
+CREATE TABLE request_log (
+	id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	account_id INT, -- can be null because not every endpoints need auth
+	method VARCHAR(10) NOT NULL,
+	endpoint VARCHAR(255) NOT NULL,
+	status_code SMALLINT UNSIGNED NOT NULL,
+	client_ip VARCHAR(45) NOT NULL,
+	request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_account_request FOREIGN KEY (account_id) REFERENCES account(id)
+        ON DELETE RESTRICT
+		ON UPDATE RESTRICT
+);
+
 -- init data
 INSERT INTO role (name) VALUES ('admin'), ('user');
 
