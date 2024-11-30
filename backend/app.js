@@ -2,11 +2,13 @@ import express from "express";
 import sequelize from "./config/db.js";
 import roleRouter from "./routes/role.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import { requestLogger } from "./middlewares/log.middleware.js";
 
 const app = express();
 
-// middlewares
+// common middlewares
 app.use(express.json());
+app.use(requestLogger)
 
 // routes
 app.use(authRouter);
