@@ -6,6 +6,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password1234
       MYSQL_DATABASE: files
+      TZ: America/Mexico_City
     volumes:
       - db_data:/var/lib/mysql
       # runs ./sql/init.sql only the first time (if db_data is not present)
@@ -47,6 +48,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./uploads:/uploads
+    environment:
+      TZ: America/Mexico_City
     depends_on:
       - backend
     ports:
