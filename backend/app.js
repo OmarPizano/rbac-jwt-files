@@ -2,6 +2,7 @@ import express from "express";
 import sequelize from "./config/db.js";
 import roleRouter from "./routes/role.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import logsRouter from "./routes/log.routes.js";
 import { requestLogger } from "./middlewares/log.middleware.js";
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(requestLogger)
 // routes
 app.use(authRouter);
 app.use(roleRouter);
+app.use(logsRouter);
 
 // database sync
 sequelize.sync().then(() => {
