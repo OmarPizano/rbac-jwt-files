@@ -33,11 +33,19 @@ const Account = sequelize.define("Account", {
   tableName: "account",
 });
 
-// Hook for password encryption
+// hooks for password encryption
 Account.beforeCreate(
   async (account) => {
     const salt = await bcrypt.genSalt(10);
     account.password = await bcrypt.hash(account.password, salt);
+  }
+);
+Account.beforeUpdate(
+  async (account) => {
+    if (account.changed("password")) {
+      const salt = await bcrypt.genSalt(10);
+      account.password = await bcrypt.hash(account.password, salt);
+    }
   }
 );
 
