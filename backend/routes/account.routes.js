@@ -31,7 +31,6 @@ accountsRouter.post("/accounts", auth("admin"), async (req, res) => {
   }
 });
 
-// TODO: the admin account must be always role_id = 1
 accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) => {
   try {
     // user: can change ITS password
@@ -59,6 +58,10 @@ accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) =>
       // client must specify at least one
       if ( !password && !role_id ) return res.sendStatus(400);
 
+      // an admin can downgrade other admins but not itself
+      // because there must be at least one admin
+      if ( role_id === 2 && req.params.id === req.accountData.id ) return res.sendStatus(403);
+
       // update user's password and/or role_id
       const account = await Account.findByPk(req.params.id);
       if ( !account ) return res.sendStatus(404);
@@ -74,9 +77,12 @@ accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) =>
   }
 });
 
-// TODO: the admin account must always exist
 accountsRouter.delete("/accounts/:id", auth("admin"), async (req, res) => {
   try {
+    // an admin can delete other but not itself
+    // because there must be at least one admin
+    if ( req.params.id === req.accountData.id ) return res.sendStatus(403);
+
     const account = await Account.findByPk(req.params.id);
     if ( !account ) return res.sendStatus(404);
 
