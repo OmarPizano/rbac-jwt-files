@@ -9,7 +9,7 @@ const File = sequelize.define("File", {
     autoIncrement: true,
     allowNull: false,
   },
-  url: {
+  filename: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,

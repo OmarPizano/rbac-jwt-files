@@ -15,7 +15,7 @@ CREATE TABLE account (
 
 CREATE TABLE uploaded_file (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    url VARCHAR(255) NOT NULL UNIQUE,
+    filename VARCHAR(255) NOT NULL UNIQUE,
     role_id_required INT NOT NULL,
     CONSTRAINT fk_file_role FOREIGN KEY (role_id_required) REFERENCES role(id)
         ON DELETE RESTRICT
@@ -43,7 +43,7 @@ VALUES
 	('admin', '$2a$12$QFL.kzQPImz.goTF3T.OLeX.QMkWz9ul1wJW2L7ub.h/CvHJE9h36', 1),
 	('user', '$2a$12$UWGxjhS6EYmvkuaLmmInOuL1a8IBbuFc0vK6bLGcre0LmaQOH7enC', 2);
 
-INSERT INTO uploaded_file (url, role_id_required)
+INSERT INTO uploaded_file (filename, role_id_required)
 VALUES
 	('classified-document.pdf', 1),
 	('generic-document.pdf', 2);

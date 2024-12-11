@@ -27,7 +27,7 @@ filesRouter.get("/files/:filename", auth("admin", "user"), async (req, res) => {
     // admin can get every file; other roles can only get role defined files
     if (req.accountData.role_id !== 1) {
       // get file that match filename and role
-      const file = await File.findOne({ where: { url: req.params.filename, role_id_required: req.accountData.role_id } });
+      const file = await File.findOne({ where: { filename: req.params.filename, role_id_required: req.accountData.role_id } });
       if (!file) return res.sendStatus(404);
     }
     // return requested file through nginx
@@ -49,7 +49,7 @@ filesRouter.post("/files", auth("admin"), uploadDir.single('file'), async (req, 
 
   try { 
     // create the uploaded_file record
-    await File.create({ url: req.file.filename, role_id_required });  
+    await File.create({ filename: req.file.filename, role_id_required });  
     res.status(201).json({ filePath: `/uploads/${req.file.filename}` });
   } catch (error) {
     console.log(`ERROR: upload file: ${error}`);
@@ -60,7 +60,7 @@ filesRouter.post("/files", auth("admin"), uploadDir.single('file'), async (req, 
 filesRouter.delete("/files/:filename", auth("admin"), async (req, res) => {
   try {
     // check if the file exists
-    const file = await File.findOne({ where: { url: req.params.filename } })
+    const file = await File.findOne({ where: { filename: req.params.filename } })
     if (!file) return res.sendStatus(404); 
 
     // remove file from filesystem
@@ -85,7 +85,7 @@ filesRouter.patch("/files/:filename", auth("admin"), async (req, res) => {
 
   try {
     // get file
-    const file = await File.findOne({ where: { url: req.params.filename } })
+    const file = await File.findOne({ where: { filename: req.params.filename } })
     if (!file) return res.sendStatus(404); 
 
     // change permissions
