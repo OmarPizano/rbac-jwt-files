@@ -9,7 +9,7 @@ rolesRouter.get("/roles", auth("admin"), async (req, res) => {
     const roles = await Role.findAll();
     res.status(200).json({ data: roles });
   } catch (error) { 
-    console.log(`ERROR: find all roles: ${error}`);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
     res.status(500).json({ message: "internal server errror" });
   }
 });

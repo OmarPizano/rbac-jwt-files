@@ -30,7 +30,7 @@ authRouter.post("/auth", async (req, res) => {
 
     res.status(200).json({ data: token });
   } catch (error) {
-    console.log(`ERROR: authentication: ${error}`);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
     res.status(500).json({ message: "internal server errror" });
   }
 });
