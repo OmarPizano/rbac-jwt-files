@@ -35,6 +35,7 @@ services:
       DB_USER: root
       DB_PASSWORD: password1234
       DB_NAME: files
+      TZ: America/Mexico_City
     depends_on:
       mysql:
         condition: service_healthy
