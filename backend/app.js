@@ -14,11 +14,17 @@ app.use(express.json());
 app.use(requestLogger)
 
 // routes
+app.get("/", (req, res) => {
+  res.status(200).json({message: "API: RBAC JWT FILES"});
+})
 app.use(authRouter);
 app.use(roleRouter);
 app.use(logsRouter);
 app.use(accountsRouter)
 app.use(filesRouter);
+app.use((req, res) => {
+  res.status(404).json({message: "not found"});
+});
 
 // database sync
 sequelize.sync().then(() => {
