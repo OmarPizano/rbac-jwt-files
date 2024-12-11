@@ -4,6 +4,7 @@ import roleRouter from "./routes/role.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import logsRouter from "./routes/log.routes.js";
 import accountsRouter from "./routes/account.routes.js";
+import filesRouter from "./routes/file.routes.js";
 import { requestLogger } from "./middlewares/log.middleware.js";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(authRouter);
 app.use(roleRouter);
 app.use(logsRouter);
 app.use(accountsRouter)
+app.use(filesRouter);
 
 // database sync
 sequelize.sync().then(() => {
