@@ -15,10 +15,11 @@ filesRouter.get("/files", auth("admin", "user"), async (req, res) => {
     const files = (req.accountData.role_id === 1) ?
       await File.findAll():
       await File.findAll({ where: { role_id_required: req.accountData.role_id } });
-    res.json(files);
+
+    res.status(200).json({ data: files });
   } catch (error) {
-    console.log(`ERROR: get files: ${error}`);
-    res.sendStatus(500);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
@@ -28,15 +29,16 @@ filesRouter.get("/files/:filename", auth("admin", "user"), async (req, res) => {
     if (req.accountData.role_id !== 1) {
       // get file that match filename and role
       const file = await File.findOne({ where: { filename: req.params.filename, role_id_required: req.accountData.role_id } });
-      if (!file) return res.sendStatus(404);
+      if (!file) return res.status(404).json({ message: "file not found or access denied" });
     }
     // return requested file through nginx
     const file = `/uploads/${req.params.filename}`;
     res.setHeader("X-Accel-Redirect", file);
+    // NOTE: not using status() or sendStatus() because they change the content-type
     res.send();
   } catch (error) {
-    console.log(`ERROR: get file: ${error}`);
-    res.sendStatus(500);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
@@ -44,16 +46,18 @@ filesRouter.get("/files/:filename", auth("admin", "user"), async (req, res) => {
 filesRouter.post("/files", auth("admin"), uploadDir.single('file'), async (req, res) => {
   // NOTE: by default, multer will upload the file with a unique filename
 
+  // validate params
   const { role_id_required } = req.body;
-  if (!role_id_required) return res.sendStatus(400);
+  if (!role_id_required) return res.status(400).json({ message: "expected parameters: roled_id_required" });
 
   try { 
     // create the uploaded_file record
-    await File.create({ filename: req.file.filename, role_id_required });  
-    res.status(201).json({ filePath: `/uploads/${req.file.filename}` });
+    await File.create({ filename: req.file.filename, role_id_required });
+
+    res.status(201).json({ data: req.file.filename });
   } catch (error) {
-    console.log(`ERROR: upload file: ${error}`);
-    res.sendStatus(500); 
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
@@ -61,7 +65,7 @@ filesRouter.delete("/files/:filename", auth("admin"), async (req, res) => {
   try {
     // check if the file exists
     const file = await File.findOne({ where: { filename: req.params.filename } })
-    if (!file) return res.sendStatus(404); 
+    if (!file) return res.status(404).json({ message: "file not found" }); 
 
     // remove file from filesystem
     // NOTE: await/async only available with fs 'promisified' version fs/promises
@@ -74,30 +78,29 @@ filesRouter.delete("/files/:filename", auth("admin"), async (req, res) => {
     
     res.sendStatus(204);
   } catch (error) {
-    console.log(`ERROR: delete file: ${error}`);
-    res.sendStatus(500); 
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
 filesRouter.patch("/files/:filename", auth("admin"), async (req, res) => {
   const { role_id_required } = req.body;
-  if (!role_id_required) return res.sendStatus(400);
+  if (!role_id_required) return res.status(400).json({ message: "expected parameters: role_id_required" });
 
   try {
     // get file
     const file = await File.findOne({ where: { filename: req.params.filename } })
-    if (!file) return res.sendStatus(404); 
+    if (!file) return res.status(404).json({ message: "file not found" }); 
 
     // change permissions
     file.role_id_required = role_id_required;
     await file.save();
 
     res.sendStatus(204);
-
   } catch (error) {
-    console.log(`ERROR: delete file: ${error}`);
-    res.sendStatus(500); 
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
-})
+});
 
 export default filesRouter;
