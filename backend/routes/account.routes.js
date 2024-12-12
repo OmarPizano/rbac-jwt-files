@@ -5,66 +5,75 @@ import Account from "../models/account.model.js";
 const accountsRouter = express.Router();
 
 accountsRouter.get("/accounts", auth("admin"), async (req, res) => {
-  const accounts = await Account.findAll({ attributes: ['id', 'username', 'role_id'] });
-  res.json(accounts);
+  try {
+    const accounts = await Account.findAll({ attributes: ['id', 'username', 'role_id'] });
+    res.status(200).json({ data: accounts });  
+  } catch (error) {
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
+  }
 });
 
 accountsRouter.post("/accounts", auth("admin"), async (req, res) => {
   // validate params
   const { username, password, role_id } = req.body;
-
-  if ( !username || !password || !role_id ) return res.sendStatus(400);
+  if ( !username || !password || !role_id ) return res.status(400).json({ message: "expected parameters: username, password, role_id" });
 
   try {
-    // check username existence
+    // check username availability
     const accounts = await Account.findAll({ where: { username: username } });
-    if ( accounts.length !== 0 ) return res.status(409).json({ "message": "user already exists" })
+    if ( accounts.length !== 0 ) return res.status(409).json({ message: "user unavailable" });
 
     // create account  
-    const result = await Account.create({ username, password, role_id });
+    const created_account = await Account.create({ username, password, role_id });
 
-    return res.sendStatus(201);
-    
+    return res.status(201).json({ data: created_account }); 
   } catch (error) {
-    console.log(`ERROR: create account: ${error}`);
-    res.sendStatus(500);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
+// TODO: separte this endpoint in two: 1. change current user password (any user), 2. change other's password (only admin)
 accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) => {
   try {
-    // user: can change ITS password
+    // user: can only change his password
     if (req.accountData.role_id == 2) {
-      // verify the user is changing ITS password
-      if (req.params.id !== req.accountData.id) return res.sendStatus(403);
+
+      // verify the user is changing his password
+      if (req.params.id !== req.accountData.id) return res.status(403).json({ message: "normal accounts can only change its password" });
 
       // validate params
       const { password } = req.body;
-      if ( !password ) return res.sendStatus(400);
+      if ( !password ) return res.status(400).json({ message: "expected parameters: password" });
 
-      // update user's password
+      // check account existence
       const account = await Account.findByPk(req.params.id);
-      if ( !account ) return res.sendStatus(404);
+      if ( !account ) return res.status(404).json({ message: "account not found" });
+
+      // change password
       account.password = password;
       await account.save();
 
       return res.sendStatus(204);
     }
-    // admin: can change password and role_id of ANY ACCOUNT
+    // admin: can change password and role_id of any account
     if (req.accountData.role_id == 1) {
 
       // validate params
       const { password, role_id } = req.body;
       // client must specify at least one
-      if ( !password && !role_id ) return res.sendStatus(400);
+      if ( !password && !role_id ) return res.status(400).json({ message: "expected parameters: password, role_id" });
 
-      // an admin can downgrade other admins but not itself
+      // an admin can demote other admins but not himself
       // because there must be at least one admin
-      if ( role_id === 2 && req.params.id === req.accountData.id ) return res.sendStatus(403);
+      if ( role_id === 2 && req.params.id === req.accountData.id ) return res.status(403).json({ message: "an admin cannot demote himself" });
 
-      // update user's password and/or role_id
+      // check account existence
       const account = await Account.findByPk(req.params.id);
-      if ( !account ) return res.sendStatus(404);
+      if ( !account ) return res.status(404).json({ message: "account not found" });
+      
+      // update user's password and/or role_id
       if ( password ) account.password = password;
       if ( role_id ) account.role_id = role_id;
       await account.save();
@@ -72,26 +81,28 @@ accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) =>
       return res.sendStatus(204);
     }
   } catch (error) {
-    console.log(`ERROR: update account: ${error}`);
-    res.sendStatus(500);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
 accountsRouter.delete("/accounts/:id", auth("admin"), async (req, res) => {
   try {
-    // an admin can delete other but not itself
+    // an admin can delete other but not himself
     // because there must be at least one admin
-    if ( req.params.id === req.accountData.id ) return res.sendStatus(403);
+    if ( req.params.id === req.accountData.id ) return res.status(403).json({ message: "an admin cannot delete himself" });
 
+    // check account existence
     const account = await Account.findByPk(req.params.id);
-    if ( !account ) return res.sendStatus(404);
+    if ( !account ) return res.status(404).json({ message: "account not found" });
 
+    // delete account
     await account.destroy();
-    res.sendStatus(204);
-    
+
+    res.sendStatus(204); 
   } catch (error) {
-    console.log(`ERROR: delete account: ${error}`);
-    res.sendStatus(500);
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" }); 
   }
 });
 
