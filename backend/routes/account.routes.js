@@ -34,52 +34,51 @@ accountsRouter.post("/accounts", auth("admin"), async (req, res) => {
   }
 });
 
-// TODO: separte this endpoint in two: 1. change current user password (any user), 2. change other's password (only admin)
-accountsRouter.patch("/accounts/:id", auth("admin", "user"), async (req, res) => {
+accountsRouter.patch("/accounts", auth("admin", "user"), async (req, res) => {
+  // this endpoint allows the user to change his own password
   try {
-    // user: can only change his password
-    if (req.accountData.role_id == 2) {
+    // check param
+    const { password } = req.body;
+    if ( !password ) return res.status(400).json({ message: "expected parameters: password" });
 
-      // verify the user is changing his password
-      if (req.params.id !== req.accountData.id) return res.status(403).json({ message: "normal accounts can only change its password" });
+    // get account
+    const account = await Account.findByPk(req.accountData.id);
+    if ( !account ) return res.status(404).json({ message: "account not found" });
 
-      // validate params
-      const { password } = req.body;
-      if ( !password ) return res.status(400).json({ message: "expected parameters: password" });
+    // change account's password
+    account.password = password;
+    await account.save();
 
-      // check account existence
-      const account = await Account.findByPk(req.params.id);
-      if ( !account ) return res.status(404).json({ message: "account not found" });
+    return res.sendStatus(204); 
+  } catch (error) {
+    console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
+    res.status(500).json({ message: "internal server errror" });  
+  }
+})
 
-      // change password
-      account.password = password;
-      await account.save();
+accountsRouter.patch("/accounts/:id", auth("admin"), async (req, res) => {
+  // this administrative endpoint helps the admin to manage other account's permissions and passwords
+  try {
+    // validate params
+    const { password, role_id } = req.body;
 
-      return res.sendStatus(204);
-    }
-    // admin: can change password and role_id of any account
-    if (req.accountData.role_id == 1) {
+    // client must specify at least one
+    if ( !password && !role_id ) return res.status(400).json({ message: "expected parameters: password | role_id" });
 
-      // validate params
-      const { password, role_id } = req.body;
-      // client must specify at least one
-      if ( !password && !role_id ) return res.status(400).json({ message: "expected parameters: password, role_id" });
+    // an admin can demote other admins but not himself
+    // because there must be at least one admin
+    if ( role_id === 2 && req.params.id === req.accountData.id ) return res.status(403).json({ message: "an admin cannot demote himself" });
 
-      // an admin can demote other admins but not himself
-      // because there must be at least one admin
-      if ( role_id === 2 && req.params.id === req.accountData.id ) return res.status(403).json({ message: "an admin cannot demote himself" });
+    // check account existence
+    const account = await Account.findByPk(req.params.id);
+    if ( !account ) return res.status(404).json({ message: "account not found" });
+    
+    // update user's password and/or role_id
+    if ( password ) account.password = password;
+    if ( role_id ) account.role_id = role_id;
+    await account.save();
 
-      // check account existence
-      const account = await Account.findByPk(req.params.id);
-      if ( !account ) return res.status(404).json({ message: "account not found" });
-      
-      // update user's password and/or role_id
-      if ( password ) account.password = password;
-      if ( role_id ) account.role_id = role_id;
-      await account.save();
-
-      return res.sendStatus(204);
-    }
+    return res.sendStatus(204);
   } catch (error) {
     console.log(`ERROR: ${req.method} ${req.originalUrl}: ${error}`);
     res.status(500).json({ message: "internal server errror" }); 
